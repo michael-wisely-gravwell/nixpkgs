@@ -199,67 +199,12 @@ in
 
       KillSignal = "SIGINT";
 
-      # Hardening (may overlap with DynamicUser=)
-      # The following options are only for optimizing:
-      # systemd-analyze security github-runner
-      AmbientCapabilities = mkBefore [ "" ];
-      CapabilityBoundingSet = mkBefore [ "" ];
-      # ProtectClock= adds DeviceAllow=char-rtc r
-      DeviceAllow = mkBefore [ "" ];
-      NoNewPrivileges = mkDefault true;
-      PrivateDevices = mkDefault true;
-      PrivateMounts = mkDefault true;
-      PrivateTmp = mkDefault true;
-      PrivateUsers = mkDefault true;
-      ProtectClock = mkDefault true;
-      ProtectControlGroups = mkDefault true;
-      ProtectHome = mkDefault true;
-      ProtectHostname = mkDefault true;
-      ProtectKernelLogs = mkDefault true;
-      ProtectKernelModules = mkDefault true;
-      ProtectKernelTunables = mkDefault true;
-      ProtectSystem = mkDefault "strict";
-      RemoveIPC = mkDefault true;
-      RestrictNamespaces = mkDefault true;
-      RestrictRealtime = mkDefault true;
-      RestrictSUIDSGID = mkDefault true;
-      UMask = mkDefault "0066";
-      ProtectProc = mkDefault "invisible";
-      SystemCallFilter = mkBefore [
-        "~@clock"
-        "~@cpu-emulation"
-        "~@module"
-        "~@mount"
-        "~@obsolete"
-        "~@raw-io"
-        "~@reboot"
-        "~capset"
-        "~setdomainname"
-        "~sethostname"
-      ];
-      RestrictAddressFamilies = mkBefore [ "AF_INET" "AF_INET6" "AF_UNIX" "AF_NETLINK" ];
-
       BindPaths = lib.optionals (cfg.workDir != null) [ cfg.workDir ];
 
       # Needs network access
       PrivateNetwork = mkDefault false;
       # Cannot be true due to Node
       MemoryDenyWriteExecute = mkDefault false;
-
-      # The more restrictive "pid" option makes `nix` commands in CI emit
-      # "GC Warning: Couldn't read /proc/stat"
-      # You may want to set this to "pid" if not using `nix` commands
-      ProcSubset = mkDefault "all";
-      # Coverage programs for compiled code such as `cargo-tarpaulin` disable
-      # ASLR (address space layout randomization) which requires the
-      # `personality` syscall
-      # You may want to set this to `true` if not using coverage tooling on
-      # compiled code
-      LockPersonality = mkDefault false;
-
-      # Note that this has some interactions with the User setting; so you may
-      # want to consult the systemd docs if using both.
-      DynamicUser = mkDefault true;
     }
     (mkIf (cfg.user != null) { User = cfg.user; })
     cfg.serviceOverrides
